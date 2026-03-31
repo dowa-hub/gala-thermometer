@@ -22,6 +22,13 @@ Both tabs stay in sync automatically via the browser's localStorage. No setup re
 - Fullscreen button on the display screen
 - Works completely offline
 
+## Download & Install
+
+1. Go to the [GitHub repo](https://github.com/dowa-hub/gala-thermometer)
+2. Click the green **Code** button → **Download ZIP**
+3. Unzip the folder anywhere on your computer
+4. Open `index.html` in Chrome or Safari — no installation needed
+
 ## Usage
 
 1. Open `index.html` in your browser
