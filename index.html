@@ -65,6 +65,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
             background: rgba(15,15,25,0.95);
             -webkit-backdrop-filter: blur(30px);
             backdrop-filter: blur(30px);
@@ -164,53 +165,67 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            gap: 40px;
         }
         .thermometer-container {
-            width: 100%;
-            max-width: 520px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            flex-shrink: 0;
+            width: fit-content;
         }
         svg {
-            width: 100%;
-            max-height: 78vh;
-            filter: drop-shadow(0 30px 60px rgba(0, 212, 255, 0.5));
+            width: auto;
+            height: 84vh;
+            filter: drop-shadow(0 40px 80px rgba(0, 212, 255, 0.55));
             will-change: transform;
         }
         .labels {
-            display: flex;
-            width: 100%;
-            justify-content: space-between;
-            margin-top: 12px;
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: -1px;
+            text-align: center;
+            margin-bottom: 16px;
         }
         .ticker {
-            background: rgba(255,255,255,0.1);
-            -webkit-backdrop-filter: blur(20px);
-            backdrop-filter: blur(20px);
-            border-radius: 9999px;
-            padding: 12px 32px;
             display: flex;
-            gap: 24px;
-            max-width: 90%;
-            overflow: hidden;
-            white-space: nowrap;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            margin-top: 20px;
+            flex-direction: column;
+            gap: 14px;
+            width: 340px;
+            align-self: center;
+            margin-top: 52px;
+            flex-shrink: 0;
         }
         .ticker-item {
-            display: inline-flex;
+            background: rgba(255,255,255,0.08);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 9999px;
+            padding: 18px 28px;
+            display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+            font-size: 1.4rem;
+        }
+        .ticker-item .donor-name {
+            flex: 1;
+            min-width: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            white-space: normal;
+            line-height: 1.3;
+        }
+        .ticker-item .donor-amount {
+            flex-shrink: 0;
+            font-weight: 700;
         }
         .ticker-item.new-item {
-            animation: tickerPop 0.6s ease forwards;
+            animation: stackSlideIn 0.4s ease forwards;
         }
-        @keyframes tickerPop {
-            0% { opacity: 0; transform: translateY(20px); }
+        @keyframes stackSlideIn {
+            0% { opacity: 0; transform: translateY(16px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
@@ -243,6 +258,7 @@
             position: absolute;
             top: 24px;
             right: 24px;
+            z-index: 10;
             background: rgba(255,255,255,0.1);
             border: none;
             color: white;
@@ -359,7 +375,6 @@
 
     <div id="display" style="display:flex; flex:1; align-items:center; justify-content:center; position:relative;">
         <div class="thermometer-container">
-            <div style="font-size:2.2rem; font-weight:700; margin-bottom:12px; letter-spacing:-1px;" id="display-title">Fundraiser 2026</div>
 
             <!--
                 SVG coordinate system (viewBox="0 0 200 620"):
@@ -372,54 +387,37 @@
                   To always fill the bulb, the rect bottom is anchored to y=590
                   (below the bulb) — only the top edge (y attr) animates.
             -->
+            <div class="labels">
+                <div style="font-size:4rem; font-weight:800; letter-spacing:-2px; line-height:1;"><span id="raised-label">$0</span> <span style="font-weight:400; opacity:0.85;">raised</span></div>
+                <div style="margin-top:6px; font-size:1rem; font-weight:600; opacity:0.5; letter-spacing:2px; text-transform:uppercase;"><span id="remaining-label">$10,000 to go</span></div>
+            </div>
+
             <svg id="thermometer-svg" viewBox="0 0 200 532" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
                 <defs>
                     <linearGradient id="mercuryGradient" x1="0" y1="512" x2="0" y2="48" gradientUnits="userSpaceOnUse">
                         <stop offset="0%" stop-color="#00d4ff"/>
                         <stop offset="100%" stop-color="#ff0088"/>
                     </linearGradient>
-                    <!-- Clip to tube interior only -->
                     <clipPath id="tube-clip">
                         <rect x="74" y="48" width="52" height="464" rx="26" ry="26"/>
                     </clipPath>
                 </defs>
 
-                <!-- Tube outline (outer shell) -->
                 <rect x="65" y="40" width="70" height="480" rx="35" ry="35"
                       fill="none" stroke="#ffffff" stroke-width="18" opacity="0.15"/>
-                <!-- Tube inner glass line -->
                 <rect x="74" y="48" width="52" height="464" rx="26" ry="26"
                       fill="none" stroke="#ffffff" stroke-width="4" opacity="0.3"/>
 
-                <!-- Scale ticks — generated by JS -->
                 <g id="scale-ticks"></g>
 
-                <!--
-                    Mercury fill: rect clipped to tube interior.
-                    At 0%  → y=512, height=0 (empty tube)
-                    At 100% → y=48, height=464 (full tube)
-                -->
                 <rect id="mercury-fill"
                       x="74" y="512" width="52" height="0"
                       fill="url(#mercuryGradient)"
                       clip-path="url(#tube-clip)"/>
-
-                <!-- Goal line — right side only, does not cross the tube -->
-                <line id="goal-line"
-                      x1="138" y1="48" x2="184" y2="48"
-                      stroke="#ff0088" stroke-width="4" stroke-dasharray="8,4" opacity="1"/>
-                <text id="goal-label"
-                      x="186" y="53" fill="#ff0088" font-size="14" font-weight="700"
-                      text-anchor="start" opacity="1">GOAL</text>
             </svg>
-
-            <div class="labels">
-                <div id="raised-label">$0 raised</div>
-                <div id="remaining-label">$10,000 to go</div>
-            </div>
-
-            <div id="ticker" class="ticker" style="display:none;"></div>
         </div>
+
+        <div id="ticker" class="ticker" style="display:none;"></div>
     </div>
 
     <div id="celebration">GOAL REACHED! 🎉</div>
@@ -532,7 +530,7 @@ function applyFillToDOM(value) {
     }
 
     const raised = document.getElementById('raised-label');
-    if (raised)  raised.textContent = fmt(value) + ' raised';
+    if (raised)  raised.textContent = fmt(value);
 
     const remaining = Math.max(state.goal - value, 0);
     const remEl  = document.getElementById('remaining-label');
@@ -679,7 +677,10 @@ function mountDisplay() {
     renderScaleTicks();
     applyFillToDOM(0);
     startAnimation(state.total);
-    rebuildTicker(state.donations, false); // no pop animation on initial load
+    rebuildTicker(state.donations, false);
+    if (state.donations.length > 0) {
+        lastTickerTimestamp = state.donations[state.donations.length - 1].timestamp;
+    }
 }
 
 // Called on every BroadcastChannel UPDATE after the display is mounted.
@@ -708,7 +709,7 @@ function updateDisplay() {
     }
 }
 
-// Rebuild entire ticker (used on cold mount)
+// Rebuild entire stack (used on cold mount) — oldest at top, newest at bottom
 function rebuildTicker(donations, animate) {
     const tickerEl = document.getElementById('ticker');
     if (!tickerEl) return;
@@ -718,15 +719,15 @@ function rebuildTicker(donations, animate) {
         return;
     }
     tickerEl.style.display = 'flex';
-    donations.slice(-4).reverse().forEach(d => {
+    donations.slice(-8).forEach(d => {
         const item = document.createElement('div');
-        item.className = 'ticker-item' + (animate ? ' new-item' : '');
-        item.innerHTML = `<span style="color:#00d4ff;">${d.name}</span><span style="font-weight:700;">+${fmt(d.amount)}</span>`;
+        item.className = 'ticker-item';
+        item.innerHTML = `<span class="donor-name" style="color:#00d4ff; font-weight:600;">${d.name}</span><span class="donor-amount">+${fmt(d.amount)}</span>`;
         tickerEl.appendChild(item);
     });
 }
 
-// Prepend a single new donation with pop animation, trim to 4 items
+// Append new donation at bottom; remove oldest from top when over 8
 function addTickerItem(donation, animate) {
     const tickerEl = document.getElementById('ticker');
     if (!tickerEl) return;
@@ -734,12 +735,11 @@ function addTickerItem(donation, animate) {
 
     const item = document.createElement('div');
     item.className = 'ticker-item' + (animate ? ' new-item' : '');
-    item.innerHTML = `<span style="color:#00d4ff;">${donation.name}</span><span style="font-weight:700;">+${fmt(donation.amount)}</span>`;
-    tickerEl.insertBefore(item, tickerEl.firstChild);
+    item.innerHTML = `<span class="donor-name" style="color:#00d4ff; font-weight:600;">${donation.name}</span><span class="donor-amount">+${fmt(donation.amount)}</span>`;
+    tickerEl.appendChild(item);
 
-    // Keep max 4 items
-    while (tickerEl.children.length > 4) {
-        tickerEl.removeChild(tickerEl.lastChild);
+    while (tickerEl.children.length > 8) {
+        tickerEl.removeChild(tickerEl.firstChild);
     }
 }
 
@@ -809,10 +809,14 @@ function openDisplayTab() {
 }
 
 function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
+    const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!isFs) {
+        const el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     } else {
-        document.exitFullscreen();
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     }
 }
 
