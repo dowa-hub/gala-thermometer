@@ -297,8 +297,17 @@
         </div>
 
         <div class="card">
-            <h3 style="margin-bottom:16px; font-size:1.3rem;">Current Total</h3>
-            <div style="font-size:4rem; font-weight:700; text-align:center; margin-bottom:24px;" id="control-total">$0</div>
+            <div style="display:flex; justify-content:space-around; align-items:center; margin-bottom:24px; gap:16px;">
+                <div style="text-align:center;">
+                    <div style="font-size:0.9rem; opacity:0.6; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px;">Raised</div>
+                    <div id="control-total" style="font-size:3.5rem; font-weight:700; opacity:0.5; line-height:1;">$0</div>
+                </div>
+                <div style="width:1px; height:60px; background:rgba(255,255,255,0.2);"></div>
+                <div style="text-align:center;">
+                    <div style="font-size:0.9rem; opacity:0.6; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px;">Goal</div>
+                    <div id="control-goal" style="font-size:3.5rem; font-weight:700; background:linear-gradient(90deg,#00d4ff,#ff00aa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1;">$10,000</div>
+                </div>
+            </div>
 
             <input type="text" id="donor-name" placeholder="Donor name (optional)" autocomplete="off"
                    style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3); color:white; padding:18px 24px; border-radius:9999px; font-size:1.1rem; margin-bottom:16px;">
@@ -570,6 +579,8 @@ function triggerCelebration() {
 function renderControlUI() {
     const totalEl = document.getElementById('control-total');
     if (totalEl) totalEl.textContent = fmt(state.total);
+    const goalEl = document.getElementById('control-goal');
+    if (goalEl) goalEl.textContent = fmt(state.goal);
 
     const list = document.getElementById('history-list');
     if (list) {
