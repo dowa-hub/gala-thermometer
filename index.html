@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermometer • Live Fundraiser</title>
+    <style>
+        :root {
+            --accent: #00d4ff;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Launcher */
+        #launcher {
+            text-align: center;
+            max-width: 640px;
+            padding: 40px;
+        }
+        #launcher h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00d4ff, #ff00aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.1);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 9999px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px -10px rgba(0, 212, 255, 0.3);
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(0, 212, 255, 0.5);
+        }
+
+        /* Common container */
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: rgba(15,15,25,0.95);
+            -webkit-backdrop-filter: blur(30px);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 0 80px -20px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Control Mode */
+        #control {
+            padding: 40px;
+            gap: 32px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        input, button {
+            font-family: inherit;
+        }
+        .amount-input {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .amount-input input {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 18px 24px;
+            font-size: 1.8rem;
+            border-radius: 9999px;
+            text-align: center;
+        }
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .preset-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 16px;
+            border-radius: 9999px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .preset-btn:hover { background: var(--accent); color: #000; }
+
+        .donor-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+        }
+        .donor-form input[type="text"] {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 18px 24px;
+            border-radius: 9999px;
+            font-size: 1rem;
+        }
+
+        .history {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.1rem;
+        }
+
+        /* Display Mode */
+        #display {
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .thermometer-container {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        svg {
+            width: 100%;
+            max-height: 78vh;
+            filter: drop-shadow(0 30px 60px rgba(0, 212, 255, 0.5));
+            will-change: transform;
+        }
+        .labels {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        .ticker {
+            background: rgba(255,255,255,0.1);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border-radius: 9999px;
+            padding: 12px 32px;
+            display: flex;
+            gap: 24px;
+            max-width: 90%;
+            overflow: hidden;
+            white-space: nowrap;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            margin-top: 20px;
+        }
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ticker-item.new-item {
+            animation: tickerPop 0.6s ease forwards;
+        }
+        @keyframes tickerPop {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Goal celebration banner */
+        #celebration {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(90deg, #ff0088, #00d4ff);
+            color: #000;
+            font-size: 3rem;
+            font-weight: 700;
+            padding: 20px 60px;
+            border-radius: 9999px;
+            box-shadow: 0 0 80px rgba(255, 0, 136, 0.6);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 100;
+            text-shadow: 0 4px 20px rgba(255,255,255,0.8);
+        }
+        #celebration.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Launcher -->
+<div id="launcher-screen" class="container" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div id="launcher">
+        <h1>Live Thermometer</h1>
+        <p style="font-size:1.4rem; opacity:0.8; margin-bottom:48px;">Real-time • Offline • Beautiful</p>
+
+        <button onclick="openMode('control')" class="btn">
+            <span>🎛️</span>
+            Open Control Screen
+        </button>
+        <button onclick="openMode('display')" class="btn">
+            <span>📺</span>
+            Open Display Screen
+        </button>
+
+        <div style="margin-top:60px; font-size:1rem; opacity:0.6;">
+            Works completely offline • Same browser on laptop + projector<br>
+            Just open both tabs and start raising!
+        </div>
+    </div>
+</div>
+
+<!-- Control Mode -->
+<div id="control-screen" class="container" style="display:none;">
+    <div id="control">
+        <div class="header">
+            <h2>Control Panel</h2>
+            <div>
+                <button onclick="openDisplayTab()" class="btn" style="padding:12px 28px; font-size:1.1rem;">
+                    📺 Open Display Tab
+                </button>
+                <button onclick="resetAll()" class="btn" style="padding:12px 28px; font-size:1.1rem; background:#ff2d55;">
+                    Reset Event
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom:16px; font-size:1.3rem;">Current Total</h3>
+            <div style="font-size:4rem; font-weight:700; text-align:center; margin-bottom:24px;" id="control-total">$0</div>
+
+            <input type="text" id="donor-name" placeholder="Donor name (optional)" autocomplete="off"
+                   style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3); color:white; padding:18px 24px; border-radius:9999px; font-size:1.1rem; margin-bottom:16px;">
+
+            <div class="presets" style="margin-bottom:16px;">
+                <button onclick="quickAdd(25)" class="preset-btn">$25</button>
+                <button onclick="quickAdd(50)" class="preset-btn">$50</button>
+                <button onclick="quickAdd(100)" class="preset-btn">$100</button>
+                <button onclick="quickAdd(250)" class="preset-btn">$250</button>
+                <button onclick="quickAdd(500)" class="preset-btn">$500</button>
+                <button onclick="quickAdd(1000)" class="preset-btn">$1,000</button>
+            </div>
+
+            <div style="display:flex; gap:12px;">
+                <input type="text" id="donation-amount" placeholder="Custom amount" autocomplete="off"
+                       style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3); color:white; padding:18px 24px; font-size:1.8rem; border-radius:9999px; text-align:center;">
+                <button onclick="addDonation()" style="background:var(--accent); color:#000; border:none; padding:0 48px; border-radius:9999px; font-weight:700; font-size:1.6rem; cursor:pointer;">GO</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3>Donation History</h3>
+                <button onclick="undoLast()" style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; padding:8px 20px; border-radius:9999px; font-size:0.95rem; cursor:pointer;">Undo Last</button>
+            </div>
+            <div class="history" id="history-list"></div>
+        </div>
+
+        <div class="card" style="margin-top:24px;">
+            <h3 style="margin-bottom:16px;">Goal &amp; Settings</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+                <div>
+                    <label style="display:block; font-size:0.95rem; opacity:0.7; margin-bottom:8px;">Goal Amount</label>
+                    <input type="text" id="goal-input" value="10000" style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3); color:white; padding:18px 24px; border-radius:9999px; font-size:1.6rem; text-align:center;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.95rem; opacity:0.7; margin-bottom:8px;">Event Title</label>
+                    <input type="text" id="title-input" value="Fundraiser 2026" style="width:100%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3); color:white; padding:18px 24px; border-radius:9999px; font-size:1.6rem;">
+                </div>
+            </div>
+            <button onclick="updateSettings()" style="margin-top:24px; width:100%; background:var(--accent); color:#000; border:none; padding:20px; border-radius:9999px; font-size:1.3rem; font-weight:700; cursor:pointer;">Save &amp; Sync Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Display Mode -->
+<div id="display-screen" class="container" style="display:none; padding:0;">
+    <button onclick="toggleFullscreen()" class="fullscreen-btn">⛶</button>
+
+    <div id="display" style="display:flex; flex:1; align-items:center; justify-content:center; position:relative;">
+        <div class="thermometer-container">
+            <div style="font-size:2.2rem; font-weight:700; margin-bottom:12px; letter-spacing:-1px;" id="display-title">Fundraiser 2026</div>
+
+            <!--
+                SVG coordinate system (viewBox="0 0 200 620"):
+                  Tube outer:  x=65, y=40, w=70, h=480, rx=35  → top=40, bottom=520
+                  Tube inner:  x=74, y=48, w=52, h=464         → top=48, bottom=512
+                  Bulb center: cx=100, cy=548, r=48 outer / r=36 inner
+                  Mercury rect fills from bottom of tube (y=512) upward.
+                  The clipPath covers both tube interior AND bulb interior so
+                  the single rect animates through both regions seamlessly.
+                  To always fill the bulb, the rect bottom is anchored to y=590
+                  (below the bulb) — only the top edge (y attr) animates.
+            -->
+            <svg id="thermometer-svg" viewBox="0 0 200 532" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <linearGradient id="mercuryGradient" x1="0" y1="512" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00d4ff"/>
+                        <stop offset="100%" stop-color="#ff0088"/>
+                    </linearGradient>
+                    <!-- Clip to tube interior only -->
+                    <clipPath id="tube-clip">
+                        <rect x="74" y="48" width="52" height="464" rx="26" ry="26"/>
+                    </clipPath>
+                </defs>
+
+                <!-- Tube outline (outer shell) -->
+                <rect x="65" y="40" width="70" height="480" rx="35" ry="35"
+                      fill="none" stroke="#ffffff" stroke-width="18" opacity="0.15"/>
+                <!-- Tube inner glass line -->
+                <rect x="74" y="48" width="52" height="464" rx="26" ry="26"
+                      fill="none" stroke="#ffffff" stroke-width="4" opacity="0.3"/>
+
+                <!-- Scale ticks — generated by JS -->
+                <g id="scale-ticks"></g>
+
+                <!--
+                    Mercury fill: rect clipped to tube interior.
+                    At 0%  → y=512, height=0 (empty tube)
+                    At 100% → y=48, height=464 (full tube)
+                -->
+                <rect id="mercury-fill"
+                      x="74" y="512" width="52" height="0"
+                      fill="url(#mercuryGradient)"
+                      clip-path="url(#tube-clip)"/>
+
+                <!-- Goal line — right side only, does not cross the tube -->
+                <line id="goal-line"
+                      x1="138" y1="48" x2="184" y2="48"
+                      stroke="#ff0088" stroke-width="4" stroke-dasharray="8,4" opacity="1"/>
+                <text id="goal-label"
+                      x="186" y="53" fill="#ff0088" font-size="14" font-weight="700"
+                      text-anchor="start" opacity="1">GOAL</text>
+            </svg>
+
+            <div class="labels">
+                <div id="raised-label">$0 raised</div>
+                <div id="remaining-label">$10,000 to go</div>
+            </div>
+
+            <div id="ticker" class="ticker" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div id="celebration">GOAL REACHED! 🎉</div>
+</div>
+
+<script>
+// ================ CONFIG & STATE ================
+let mode = 'launcher';
+let channel;
+let state = {
+    total: 0,
+    goal: 10000,
+    title: 'Fundraiser 2026',
+    donations: []
+};
+
+// displayValue tracks what is currently rendered; targetValue is where we're heading.
+// displayValue is NEVER reset to 0 after initial mount — only targetValue changes on updates.
+let displayValue = 0;
+let targetValue  = 0;
+let animFrame    = null;
+let displayMounted = false; // true after the display has rendered at least once
+let lastTickerTimestamp = 0; // prevents duplicate ticker entries when both sync channels fire
+
+const LERP_ALPHA  = 0.08;
+const CHANNEL_NAME = 'fundraiser-thermometer-v1';
+
+// SVG tube geometry constants (match the viewBox coordinates above)
+const TUBE_TOP    = 48;   // y of tube inner top edge
+const TUBE_BOTTOM = 512;  // y of tube inner bottom edge (= TUBE_TOP + 464)
+const TUBE_HEIGHT = 464;  // TUBE_BOTTOM - TUBE_TOP
+
+// ================ UTILITIES ================
+function saveState() {
+    localStorage.setItem('thermometerState', JSON.stringify(state));
+}
+
+function loadState() {
+    const saved = localStorage.getItem('thermometerState');
+    if (saved) {
+        try { state = JSON.parse(saved); } catch(e) {}
+    }
+    state.total = parseFloat(state.total) || 0;
+    state.goal  = parseFloat(state.goal)  || 10000;
+    if (state.goal <= 0) state.goal = 10000;
+    if (!Array.isArray(state.donations)) state.donations = [];
+}
+
+function broadcastUpdate() {
+    if (channel) channel.postMessage({ type: 'UPDATE', state: state });
+}
+
+function fmt(n) {
+    return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+// ================ SCALE TICKS ================
+// Generates 5 evenly-spaced tick marks with dollar labels along the tube.
+function renderScaleTicks() {
+    const g = document.getElementById('scale-ticks');
+    if (!g) return;
+    g.innerHTML = '';
+    const steps = 5;
+    for (let i = 0; i <= steps; i++) {
+        const frac  = i / steps;
+        const y     = TUBE_BOTTOM - frac * TUBE_HEIGHT;
+        const label = fmt(state.goal * frac);
+
+        // Tick line on the left side of the tube
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', '60');
+        line.setAttribute('x2', '74');
+        line.setAttribute('y1', y);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke', '#ffffff');
+        line.setAttribute('stroke-width', '3');
+        line.setAttribute('opacity', '0.5');
+        g.appendChild(line);
+
+        // Dollar label to the left of the tick
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', '56');
+        text.setAttribute('y', y + 5);
+        text.setAttribute('fill', '#ffffff');
+        text.setAttribute('font-size', '14');
+        text.setAttribute('font-weight', '600');
+        text.setAttribute('text-anchor', 'end');
+        text.setAttribute('opacity', '0.6');
+        text.textContent = label;
+        g.appendChild(text);
+    }
+}
+
+// ================ ANIMATION ENGINE ================
+// Maps a 0–1 fill fraction to the SVG `y` attribute of the mercury rect.
+// At frac=0: top edge is at TUBE_BOTTOM (only bulb visible via clip)
+// At frac=1: top edge is at TUBE_TOP (full tube + bulb filled)
+function fracToY(frac) {
+    return TUBE_BOTTOM - frac * TUBE_HEIGHT;
+}
+
+function applyFillToDOM(value) {
+    const frac = Math.min(Math.max(value / state.goal, 0), 1.0);
+    const y    = fracToY(frac);
+
+    const fill = document.getElementById('mercury-fill');
+    if (fill) {
+        fill.setAttribute('y', y);
+        fill.setAttribute('height', TUBE_BOTTOM - y);
+    }
+
+    const raised = document.getElementById('raised-label');
+    if (raised)  raised.textContent = fmt(value) + ' raised';
+
+    const remaining = Math.max(state.goal - value, 0);
+    const remEl  = document.getElementById('remaining-label');
+    if (remEl)   remEl.textContent = fmt(remaining) + ' to go';
+}
+
+function lerpAnimation(timestamp) {
+    const difference = targetValue - displayValue;
+
+    if (Math.abs(difference) > 0.5) {
+        // Frame-rate-independent LERP: amount moved per frame is proportional
+        // to the gap, with alpha scaled by elapsed ms so 60 fps ≈ 120 fps feel.
+        displayValue += difference * LERP_ALPHA;
+        applyFillToDOM(displayValue);
+        animFrame = requestAnimationFrame(lerpAnimation);
+    } else {
+        // Close enough — snap to target and stop the loop.
+        displayValue = targetValue;
+        applyFillToDOM(displayValue);
+        animFrame = null;
+        if (displayValue >= state.goal) triggerCelebration();
+    }
+}
+
+// Update the target; start the loop only if it isn't already running.
+function startAnimation(newTarget) {
+    targetValue = newTarget;
+    if (!animFrame) {
+        animFrame = requestAnimationFrame(lerpAnimation);
+    }
+    // If animFrame is already running it will pick up the new targetValue
+    // naturally on its next iteration — no restart needed.
+}
+
+function triggerCelebration() {
+    const banner = document.getElementById('celebration');
+    if (banner) {
+        banner.classList.add('show');
+        setTimeout(() => banner.classList.remove('show'), 2800);
+    }
+}
+
+// ================ CONTROL MODE ================
+function renderControlUI() {
+    const totalEl = document.getElementById('control-total');
+    if (totalEl) totalEl.textContent = fmt(state.total);
+
+    const list = document.getElementById('history-list');
+    if (list) {
+        list.innerHTML = '';
+        state.donations.slice().reverse().forEach(d => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <span>${d.name || 'Anonymous'} • ${new Date(d.timestamp).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</span>
+                <span style="color:#00d4ff; font-weight:700;">+${fmt(d.amount)}</span>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    const goalInput  = document.getElementById('goal-input');
+    const titleInput = document.getElementById('title-input');
+    if (goalInput)  goalInput.value  = state.goal;
+    if (titleInput) titleInput.value = state.title;
+}
+
+function addDonation() {
+    const amountStr = (document.getElementById('donation-amount') || {}).value || '';
+    const name      = (document.getElementById('donor-name')     || {}).value || '';
+    const amount    = parseFloat(amountStr.replace(/[^0-9.]/g, ''));
+
+    if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid positive amount.');
+        return;
+    }
+
+    // Sanity check: warn if a single donation is more than 2× the remaining goal
+    const remaining = Math.max(state.goal - state.total, 0);
+    if (amount > state.goal * 2) {
+        const ok = confirm(`$${amount.toLocaleString('en-US')} is more than twice the goal. Did you mean to enter that?`);
+        if (!ok) return;
+    }
+
+    state.donations.push({ name: name || 'Anonymous', amount: amount, timestamp: Date.now() });
+    state.total = state.donations.reduce((sum, d) => sum + d.amount, 0);
+
+    const amtInput  = document.getElementById('donation-amount');
+    const nameInput = document.getElementById('donor-name');
+    if (amtInput)  amtInput.value  = '';
+    if (nameInput) nameInput.value = '';
+
+    saveState();
+    broadcastUpdate();
+    renderControlUI();
+}
+
+function quickAdd(val) {
+    const amtInput = document.getElementById('donation-amount');
+    if (amtInput) { amtInput.value = val; amtInput.focus(); }
+}
+
+function undoLast() {
+    if (state.donations.length === 0) return;
+    state.donations.pop();
+    state.total = state.donations.reduce((sum, d) => sum + d.amount, 0);
+    saveState();
+    broadcastUpdate();
+    renderControlUI();
+}
+
+function updateSettings() {
+    const newGoal  = parseFloat((document.getElementById('goal-input')  || {}).value);
+    const newTitle = ((document.getElementById('title-input') || {}).value || '').trim();
+    if (!isNaN(newGoal) && newGoal > 0) state.goal  = newGoal;
+    if (newTitle) state.title = newTitle;
+    saveState();
+    broadcastUpdate();
+    renderControlUI();
+    alert('Settings synced to display!');
+}
+
+function resetAll() {
+    if (!confirm('Reset entire event? This cannot be undone.')) return;
+    state.total     = 0;
+    state.donations = [];
+    saveState();
+    broadcastUpdate();
+    renderControlUI();
+}
+
+// ================ DISPLAY MODE ================
+// Called once on mount to set up the display from a cold start.
+function mountDisplay() {
+    displayMounted  = true;
+    displayValue    = 0;
+    targetValue     = 0;
+
+    const titleEl = document.getElementById('display-title');
+    if (titleEl) titleEl.textContent = state.title;
+
+    renderScaleTicks();
+    applyFillToDOM(0);
+    startAnimation(state.total);
+    rebuildTicker(state.donations, false); // no pop animation on initial load
+}
+
+// Called on every BroadcastChannel UPDATE after the display is mounted.
+// Does NOT reset displayValue — the LERP loop picks up from wherever it is.
+function updateDisplay() {
+    const titleEl = document.getElementById('display-title');
+    if (titleEl) titleEl.textContent = state.title;
+
+    // Re-render ticks if goal changed
+    renderScaleTicks();
+
+    // Move target; animation loop continues smoothly from current displayValue
+    startAnimation(state.total);
+
+    // Clear ticker on reset, otherwise add newest donation (deduplicated by timestamp)
+    if (state.donations.length === 0) {
+        const tickerEl = document.getElementById('ticker');
+        if (tickerEl) { tickerEl.innerHTML = ''; tickerEl.style.display = 'none'; }
+        lastTickerTimestamp = 0;
+    } else {
+        const last = state.donations[state.donations.length - 1];
+        if (last.timestamp !== lastTickerTimestamp) {
+            lastTickerTimestamp = last.timestamp;
+            addTickerItem(last, true);
+        }
+    }
+}
+
+// Rebuild entire ticker (used on cold mount)
+function rebuildTicker(donations, animate) {
+    const tickerEl = document.getElementById('ticker');
+    if (!tickerEl) return;
+    tickerEl.innerHTML = '';
+    if (donations.length === 0) {
+        tickerEl.style.display = 'none';
+        return;
+    }
+    tickerEl.style.display = 'flex';
+    donations.slice(-4).reverse().forEach(d => {
+        const item = document.createElement('div');
+        item.className = 'ticker-item' + (animate ? ' new-item' : '');
+        item.innerHTML = `<span style="color:#00d4ff;">${d.name}</span><span style="font-weight:700;">+${fmt(d.amount)}</span>`;
+        tickerEl.appendChild(item);
+    });
+}
+
+// Prepend a single new donation with pop animation, trim to 4 items
+function addTickerItem(donation, animate) {
+    const tickerEl = document.getElementById('ticker');
+    if (!tickerEl) return;
+    tickerEl.style.display = 'flex';
+
+    const item = document.createElement('div');
+    item.className = 'ticker-item' + (animate ? ' new-item' : '');
+    item.innerHTML = `<span style="color:#00d4ff;">${donation.name}</span><span style="font-weight:700;">+${fmt(donation.amount)}</span>`;
+    tickerEl.insertBefore(item, tickerEl.firstChild);
+
+    // Keep max 4 items
+    while (tickerEl.children.length > 4) {
+        tickerEl.removeChild(tickerEl.lastChild);
+    }
+}
+
+// ================ BROADCAST & SYNC ================
+function applyIncomingState(incoming) {
+    state = incoming;
+    if (mode === 'display') {
+        if (!displayMounted) mountDisplay();
+        else updateDisplay();
+    } else if (mode === 'control') {
+        renderControlUI();
+    }
+}
+
+function setupChannel() {
+    // Primary sync: localStorage storage event (reliable across file:// tabs)
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'thermometerState' && e.newValue) {
+            try { applyIncomingState(JSON.parse(e.newValue)); } catch(err) {}
+        }
+    });
+
+    // Secondary sync: BroadcastChannel (works in Chrome, may not work in all browsers with file://)
+    try {
+        channel = new BroadcastChannel(CHANNEL_NAME);
+        channel.onmessage = (ev) => {
+            if (ev.data.type === 'UPDATE') {
+                applyIncomingState(ev.data.state);
+            } else if (ev.data.type === 'SYNC_REQ' && mode === 'control') {
+                broadcastUpdate();
+            }
+        };
+    } catch(e) {
+        console.error('BroadcastChannel failed', e);
+    }
+    window.addEventListener('beforeunload', () => channel && channel.close());
+}
+
+// ================ MODE SWITCHING ================
+function detectMode() {
+    const params = new URLSearchParams(window.location.search);
+    const m = params.get('mode');
+    if      (m === 'control') mode = 'control';
+    else if (m === 'display') mode = 'display';
+    else                      mode = 'launcher';
+}
+
+function showScreen() {
+    document.getElementById('launcher-screen').style.display = mode === 'launcher' ? 'flex'   : 'none';
+    document.getElementById('control-screen').style.display  = mode === 'control'  ? 'flex'   : 'none';
+    document.getElementById('display-screen').style.display  = mode === 'display'  ? 'flex'   : 'none';
+
+    if      (mode === 'control') renderControlUI();
+    else if (mode === 'display') mountDisplay();
+}
+
+function openMode(m) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('mode', m);
+    window.open(url.toString(), '_blank');
+}
+
+function openDisplayTab() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('mode', 'display');
+    window.open(url.toString(), '_blank');
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// ================ INIT ================
+function initialize() {
+    try {
+        loadState();
+        detectMode();
+        setupChannel();
+        showScreen();
+
+        // Display: request current state from the controller tab
+        if (mode === 'display') {
+            setTimeout(() => channel && channel.postMessage({ type: 'SYNC_REQ' }), 120);
+        }
+
+        // Control: Enter key in either input field submits
+        if (mode === 'control') {
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    const id = document.activeElement && document.activeElement.id;
+                    if (id === 'donation-amount' || id === 'donor-name') addDonation();
+                }
+            });
+        }
+
+        console.log('%c✅ Thermometer initialized (100% offline)', 'color:#00d4ff; font-size:13px;');
+    } catch(e) {
+        console.error('Init error:', e);
+        alert('Something went wrong: ' + e.message + '\n\nTry refreshing or using a different browser.');
+    }
+}
+
+window.onload = initialize;
+</script>
+
+</body>
+</html>
