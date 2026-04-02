@@ -197,8 +197,6 @@
         }
         .ticker-item {
             background: rgba(255,255,255,0.08);
-            -webkit-backdrop-filter: blur(20px);
-            backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.12);
             border-radius: 9999px;
             padding: 18px 28px;
@@ -207,7 +205,6 @@
             align-items: center;
             gap: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.35);
             font-size: 1.4rem;
         }
         .ticker-item .donor-name {
@@ -260,6 +257,28 @@
         @keyframes celebPulse {
             from { transform: translate(-50%, -50%) scale(1.08); box-shadow: 0 0 120px rgba(255,0,136,0.8), 0 0 40px rgba(0,212,255,0.6); }
             to   { transform: translate(-50%, -50%) scale(1.18); box-shadow: 0 0 200px rgba(255,0,136,1),   0 0 80px rgba(0,212,255,0.9); }
+        }
+
+        /* Gradient background on display */
+        #display-screen {
+            background-image: linear-gradient(135deg, var(--grad-a, #00d4ff), var(--grad-b, #ff00aa));
+            background-size: 200% 200%;
+            background-color: transparent;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+            animation: gradShift 10s ease-in-out infinite alternate;
+        }
+        @keyframes gradShift {
+            from { background-position: 0% 50%; }
+            to   { background-position: 100% 50%; }
+        }
+        /* Glass panel behind thermometer + ticker */
+        #display > div {
+            background: rgba(0,0,0,0.35);
+            border-radius: 36px;
+            padding: 40px 72px;
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 8px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08);
         }
 
         /* System banners */
@@ -402,6 +421,31 @@
                 </label>
             </div>
         </div>
+
+        <div class="card" style="margin-top:24px;">
+            <h3 style="margin-bottom:4px;">Display Gradient</h3>
+            <p style="font-size:0.85rem; opacity:0.5; margin-bottom:20px;">Syncs to the display screen instantly</p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+                <div style="text-align:center;">
+                    <label style="display:block; font-size:0.85rem; opacity:0.6; margin-bottom:8px;">Color A</label>
+                    <input type="color" id="grad-color-a" value="#00d4ff" oninput="updateGradient()" style="width:100%; height:56px; border:none; border-radius:16px; cursor:pointer; padding:4px; background:rgba(255,255,255,0.1);">
+                </div>
+                <div style="text-align:center;">
+                    <label style="display:block; font-size:0.85rem; opacity:0.6; margin-bottom:8px;">Color B</label>
+                    <input type="color" id="grad-color-b" value="#ff00aa" oninput="updateGradient()" style="width:100%; height:56px; border:none; border-radius:16px; cursor:pointer; padding:4px; background:rgba(255,255,255,0.1);">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:12px;">
+                <button onclick="applyPreset('#00d4ff','#ff00aa')" title="Gala"    style="background:linear-gradient(135deg,#00d4ff,#ff00aa); border:none; border-radius:14px; height:44px; cursor:pointer;"></button>
+                <button onclick="applyPreset('#7c3aed','#00d4ff')" title="Cosmos"  style="background:linear-gradient(135deg,#7c3aed,#00d4ff); border:none; border-radius:14px; height:44px; cursor:pointer;"></button>
+                <button onclick="applyPreset('#ff0088','#ff6b35')" title="Sunset"  style="background:linear-gradient(135deg,#ff0088,#ff6b35); border:none; border-radius:14px; height:44px; cursor:pointer;"></button>
+                <button onclick="applyPreset('#00ff88','#0066ff')" title="Aurora"  style="background:linear-gradient(135deg,#00ff88,#0066ff); border:none; border-radius:14px; height:44px; cursor:pointer;"></button>
+                <button onclick="applyPreset('#0a0a14','#1a1a2e')" title="Midnight" style="background:linear-gradient(135deg,#0a0a14,#1a1a2e); border:2px solid rgba(255,255,255,0.15); border-radius:14px; height:44px; cursor:pointer;"></button>
+            </div>
+            <div style="font-size:0.78rem; opacity:0.4; text-align:center;">Gala &nbsp;·&nbsp; Cosmos &nbsp;·&nbsp; Sunset &nbsp;·&nbsp; Aurora &nbsp;·&nbsp; Midnight</div>
+        </div>
     </div>
 </div>
 
@@ -474,7 +518,9 @@ let state = {
     total: 0,
     goal: 10000,
     title: 'Fundraiser 2026',
-    donations: []
+    donations: [],
+    gradientA: '#00d4ff',
+    gradientB: '#ff00aa'
 };
 
 // displayValue tracks what is currently rendered; targetValue is where we're heading.
@@ -529,6 +575,8 @@ function validateState() {
     }
     // Recalculate total from array (source of truth)
     state.total = state.donations.reduce((s, d) => s + d.amount, 0);
+    if (!state.gradientA || typeof state.gradientA !== 'string') state.gradientA = '#00d4ff';
+    if (!state.gradientB || typeof state.gradientB !== 'string') state.gradientB = '#ff00aa';
 }
 
 function loadState() {
@@ -758,6 +806,34 @@ function triggerCelebration() {
     launchConfetti();
 }
 
+// ================ GRADIENT ================
+function applyGradient() {
+    document.documentElement.style.setProperty('--grad-a', state.gradientA);
+    document.documentElement.style.setProperty('--grad-b', state.gradientB);
+}
+
+function updateGradient() {
+    const a = document.getElementById('grad-color-a');
+    const b = document.getElementById('grad-color-b');
+    if (a) state.gradientA = a.value;
+    if (b) state.gradientB = b.value;
+    applyGradient();
+    saveState();
+    broadcastUpdate();
+}
+
+function applyPreset(a, b) {
+    state.gradientA = a;
+    state.gradientB = b;
+    const inputA = document.getElementById('grad-color-a');
+    const inputB = document.getElementById('grad-color-b');
+    if (inputA) inputA.value = a;
+    if (inputB) inputB.value = b;
+    applyGradient();
+    saveState();
+    broadcastUpdate();
+}
+
 // ================ BACKUP & RESTORE ================
 function exportData() {
     const json = JSON.stringify(state, null, 2);
@@ -818,6 +894,11 @@ function renderControlUI() {
     const titleInput = document.getElementById('title-input');
     if (goalInput)  goalInput.value  = state.goal;
     if (titleInput) titleInput.value = state.title;
+
+    const gradA = document.getElementById('grad-color-a');
+    const gradB = document.getElementById('grad-color-b');
+    if (gradA) gradA.value = state.gradientA;
+    if (gradB) gradB.value = state.gradientB;
 }
 
 function addDonation() {
@@ -894,6 +975,7 @@ function mountDisplay() {
     const titleEl = document.getElementById('display-title');
     if (titleEl) titleEl.textContent = state.title;
 
+    applyGradient();
     renderScaleTicks();
     applyFillToDOM(0);
     startAnimation(state.total);
@@ -967,6 +1049,7 @@ function addTickerItem(donation, animate) {
 function applyIncomingState(incoming) {
     state = incoming;
     if (mode === 'display') {
+        applyGradient();
         if (!displayMounted) mountDisplay();
         else updateDisplay();
     } else if (mode === 'control') {
@@ -1045,6 +1128,7 @@ function initialize() {
     try {
         loadState();
         detectMode();
+        applyGradient();
         setupChannel();
         showScreen();
 
