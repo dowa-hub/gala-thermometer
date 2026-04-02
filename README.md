@@ -4,7 +4,7 @@ A live fundraiser thermometer for gala events. Runs entirely in the browser — 
 
 ## How It Works
 
-Open `index.html` in Chrome or Safari. From the launcher, open two tabs:
+Open `index.html` in Google Chrome. From the launcher, open two tabs:
 
 - **Control Screen** — enter donor names and amounts, track history
 - **Display Screen** — the thermometer shown on the projector
@@ -17,6 +17,8 @@ Both tabs stay in sync automatically via the browser's localStorage. No setup re
 - Donor name + amount ticker at the bottom of the display
 - Preset buttons ($25, $50, $100, $250, $500, $1,000) or enter a custom amount
 - Undo last donation
+- Confetti celebration when the goal is reached
+- Export / Import JSON backup of all donation data
 - Configurable goal amount and event title
 - Reset event clears everything including the display ticker
 - Fullscreen button on the display screen
@@ -27,11 +29,11 @@ Both tabs stay in sync automatically via the browser's localStorage. No setup re
 1. Go to the [GitHub repo](https://github.com/dowa-hub/gala-thermometer)
 2. Click the green **Code** button → **Download ZIP**
 3. Unzip the folder anywhere on your computer
-4. Open `index.html` in Chrome or Safari — no installation needed
+4. Open `index.html` in Google Chrome — no installation needed
 
 ## Usage
 
-1. Open `index.html` in your browser
+1. Open `index.html` in Google Chrome
 2. Click **Open Control Screen** — use this on your laptop
 3. Click **Open Display Tab** — send this to the projector
 4. Set your goal and event title in the Goal & Settings section, click Save
@@ -39,6 +41,6 @@ Both tabs stay in sync automatically via the browser's localStorage. No setup re
 
 ## Requirements
 
-- Any modern browser (Chrome, Safari 15+, Firefox, Edge)
-- Both tabs must be open in the same browser on the same machine
+- Google Chrome (required)
+- Both tabs must be open in Chrome on the same machine
 - Does not work in private/incognito mode (localStorage is restricted)
