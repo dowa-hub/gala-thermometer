@@ -18,6 +18,7 @@ Both tabs stay in sync automatically via the browser's localStorage. No setup re
 - Preset buttons ($25, $50, $100, $250, $500, $1,000) or enter a custom amount
 - Undo last donation
 - Confetti celebration when the goal is reached
+- Customizable animated gradient background with 5 presets and color pickers
 - Export / Import JSON backup of all donation data
 - Configurable goal amount and event title
 - Reset event clears everything including the display ticker
