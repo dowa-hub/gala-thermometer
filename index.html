@@ -202,11 +202,12 @@
         .ticker {
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            justify-content: flex-start;
             gap: 14px;
             width: 360px;
             flex-shrink: 0;
-            align-self: stretch;
+            align-self: flex-end;
+            max-height: 76vh;
             overflow: hidden;
         }
         .ticker-item {
@@ -238,7 +239,7 @@
             animation: stackSlideIn 0.4s ease forwards;
         }
         @keyframes stackSlideIn {
-            0% { opacity: 0; transform: translateY(16px); }
+            0% { opacity: 0; transform: translateY(-16px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
@@ -1068,7 +1069,7 @@ function rebuildTicker(donations, animate) {
         return;
     }
     tickerEl.style.display = 'flex';
-    donations.slice(-8).forEach(d => {
+    donations.slice(-8).reverse().forEach(d => {
         const item = document.createElement('div');
         item.className = 'ticker-item';
         item.innerHTML = `<span class="donor-name" style="color:#00d4ff; font-weight:600;">${d.name}</span><span class="donor-amount">+${fmt(d.amount)}</span>`;
@@ -1076,7 +1077,7 @@ function rebuildTicker(donations, animate) {
     });
 }
 
-// Append new donation at bottom; remove oldest from top when over 8
+// Prepend new donation at top; remove oldest from bottom when over 8
 function addTickerItem(donation, animate) {
     const tickerEl = document.getElementById('ticker');
     if (!tickerEl) return;
@@ -1085,10 +1086,10 @@ function addTickerItem(donation, animate) {
     const item = document.createElement('div');
     item.className = 'ticker-item' + (animate ? ' new-item' : '');
     item.innerHTML = `<span class="donor-name" style="color:#00d4ff; font-weight:600;">${donation.name}</span><span class="donor-amount">+${fmt(donation.amount)}</span>`;
-    tickerEl.appendChild(item);
+    tickerEl.prepend(item);
 
     while (tickerEl.children.length > 8) {
-        tickerEl.removeChild(tickerEl.firstChild);
+        tickerEl.removeChild(tickerEl.lastChild);
     }
 }
 
